@@ -41,8 +41,8 @@
  * `useSharedXlmPrice()`. Reach for this hook only when that provider is
  * genuinely absent from the component's render context.
  */
-import { useEffect, useState } from "react";
 import { getXlmUsdPrice } from "./xlmPrice";
+import { usePriceFeed } from "./usePriceFeed";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1_000;
 
@@ -52,31 +52,5 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1_000;
  * @returns {{ price: number | null; loading: boolean }} Latest price (`null` if unavailable) and loading flag.
  */
 export function useXlmPrice(): { price: number | null; loading: boolean } {
-  const [price, setPrice] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function refresh() {
-      const p = await getXlmUsdPrice();
-      if (!cancelled) {
-        setPrice(p);
-        setLoading(false);
-      }
-    }
-
-    void refresh();
-
-    const interval = setInterval(() => {
-      void refresh();
-    }, REFRESH_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
-
-  return { price, loading };
+  return usePriceFeed(getXlmUsdPrice, { intervalMs: REFRESH_INTERVAL_MS });
 }
