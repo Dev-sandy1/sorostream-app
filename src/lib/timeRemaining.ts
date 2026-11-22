@@ -42,9 +42,22 @@ export function formatTimeRemaining(endTime: Date | string, now: number = Date.n
   return "Less than a minute remaining";
 }
 
+/**
+ * Format a short countdown given a remaining duration in milliseconds.
+ * Intended for sub-minute warnings (e.g. session expiry) where only whole
+ * seconds need to be shown.  Returns "0s" for null, zero, or negative input.
+ */
+export function formatSecondsRemaining(ms: number | null): string {
+  if (!ms || ms <= 0) return "0s";
+  return `${Math.ceil(ms / 1000)}s`;
+}
+
 /** Relative end time for finished streams, e.g. "Ended 2 days ago". */
 export function formatEndedAgo(endTime: Date | string, now: number = Date.now()): string {
-  const diffSeconds = Math.floor((now - new Date(endTime).getTime()) / 1000);
+  // A negative diff means endTime is still in the future (e.g. clock skew). Clamp
+  // to zero so we never return a misleading "Ended just now" for a live stream.
+  const rawDiff = Math.floor((now - new Date(endTime).getTime()) / 1000);
+  const diffSeconds = Math.max(0, rawDiff);
   if (diffSeconds < 60) return "Ended just now";
   const minutes = Math.floor(diffSeconds / 60);
   if (minutes < 60) return `Ended ${plural(minutes, "min", "min")} ago`;

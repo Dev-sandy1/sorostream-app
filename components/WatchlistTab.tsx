@@ -3,7 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { sorostream, claimableNow, getMockStream } from "@/src/lib/sorostream";
 
+// Note (#892): Unlike addressBook.ts (MAX_CONTACTS = 50) and streamTemplates.ts
+// (MAX_TEMPLATES = 20), sorostream-watchlist is currently uncapped — an
+// unintentional oversight documented in docs/storage-keys.md (Finding 8).
 const STORAGE_KEY = "sorostream-watchlist";
+/** Maximum number of streams that can be added to the watchlist. Keeps the
+ *  10-second poll burst bounded, consistent with MAX_CONTACTS (50) and
+ *  MAX_TEMPLATES (20) elsewhere in the app. */
+export const MAX_WATCHLIST = 50;
 
 interface WatchedStream {
   id: string;
@@ -28,7 +35,11 @@ function loadWatchlist(): WatchedStream[] {
 }
 
 function saveWatchlist(list: WatchedStream[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch {
+    // Ignore storage errors (e.g. quota exceeded in private browsing).
+  }
 }
 
 function timeRemaining(endTimeIso: string): string {
@@ -93,6 +104,10 @@ export default function WatchlistTab() {
       setInputError("Already watching this stream.");
       return;
     }
+    if (watchlist.length >= MAX_WATCHLIST) {
+      setInputError(`Watchlist is full (max ${MAX_WATCHLIST} streams).`);
+      return;
+    }
     const next: WatchedStream[] = [...watchlist, { id, addedAt: new Date().toISOString() }];
     saveWatchlist(next);
     setWatchlist(next);
@@ -113,7 +128,7 @@ export default function WatchlistTab() {
 
   function formatClaimable(raw: string): string {
     const n = parseInt(raw, 10);
-    if (isNaN(n)) return "0.00";
+    if (isNaN(n)) return "—";
     return (n / 10_000_000).toFixed(4);
   }
 

@@ -63,21 +63,51 @@ export function getSavedTemplates(): SavedTemplate[] {
   }
 }
 
+/**
+ * Persist a new template and return it (with its generated id).
+ *
+ * Returns null if the cap (MAX_TEMPLATES) has been reached.
+ *
+ * Label-collision guard: if the label matches a built-in template (see
+ * `findBuiltInTemplateByLabel`) this function throws, because the picker
+ * renders built-ins and saved templates in the same list and two entries
+ * with identical labels would be indistinguishable. The check is enforced
+ * here rather than left to callers so a future caller can never
+ * accidentally violate the invariant.
+ */
 export function saveTemplate(
   template: Omit<SavedTemplate, "id">,
 ): SavedTemplate | null {
+  if (findBuiltInTemplateByLabel(template.label)) {
+    throw new Error(
+      `Cannot save a template whose label matches a built-in: "${template.label}". ` +
+        "Rename the template before saving.",
+    );
+  }
   const templates = getSavedTemplates();
   if (templates.length >= MAX_TEMPLATES) return null;
   const id = `tpl_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const newTemplate: SavedTemplate = { ...template, id };
   templates.push(newTemplate);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  } catch {
+    // Private browsing or quota exceeded — treat as a no-op and surface the
+    // failure to the caller by returning null, consistent with the capacity
+    // guard above (#862).
+    return null;
+  }
   return newTemplate;
 }
 
 export function deleteTemplate(id: string): void {
   const templates = getSavedTemplates().filter((t) => t.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  } catch {
+    // Swallow write errors (private browsing / quota) — the in-memory filter
+    // already applied; next read will re-sync from storage (#862).
+  }
 }
 
 export function updateTemplate(
@@ -88,7 +118,12 @@ export function updateTemplate(
   const idx = templates.findIndex((t) => t.id === id);
   if (idx === -1) return false;
   templates[idx] = { ...templates[idx], ...updates };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  } catch {
+    // Write failed (private browsing / quota) — report failure to caller (#862).
+    return false;
+  }
   return true;
 }
 

@@ -19,5 +19,31 @@ import { usePriceFeed } from "./usePriceFeed";
  * @returns {{ price: number | null; loading: boolean }} Latest price (`null` if unavailable) and loading flag.
  */
 export function useOraclePrice(token: string): { price: number | null; loading: boolean } {
-  return usePriceFeed(() => getOraclePrice(token), { deps: [token] });
+  const [price, setPrice] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    // Reset to a loading state immediately so callers never see a stale price
+    // from the previous token while the new fetch is in-flight.
+    setPrice(null);
+    setLoading(true);
+
+    async function refresh() {
+      const p = await getOraclePrice(token);
+      if (!cancelled) {
+        setPrice(p);
+        setLoading(false);
+      }
+    }
+
+    void refresh();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  return { price, loading };
 }
