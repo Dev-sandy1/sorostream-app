@@ -228,7 +228,7 @@ export default function GlobalSearch() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  const showDropdown = open && (query || results.length > 0);
+  const showDropdown = open;
 
   return (
     <div className="relative" data-global-search>
