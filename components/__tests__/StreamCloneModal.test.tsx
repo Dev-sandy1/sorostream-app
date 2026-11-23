@@ -44,4 +44,22 @@ describe("StreamCloneModal", () => {
     );
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it("always resets a source stream's cliff to zero when cloning (#955)", () => {
+    const onClose = vi.fn();
+    render(
+      <StreamCloneModal
+        stream={{ ...stream, cliffTime: '2020-01-04T00:00:00.000Z' }}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Clone Stream" }));
+
+    const url = new URL(push.mock.calls[0][0], "https://example.test");
+    expect(url.searchParams.get("cliff")).toBe("0");
+    expect(url.searchParams.has("cliffTime")).toBe(false);
+    expect(url.searchParams.has("cliff_time")).toBe(false);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
 });

@@ -17,6 +17,11 @@ describe('FlowRatePreview', () => {
     expect(container.firstChild).toBeNull();
   });
 
+  it('renders nothing when duration is negative', () => {
+    const { container } = render(<FlowRatePreview amount="100" durationSeconds={-3600} />);
+    expect(container.firstChild).toBeNull();
+  });
+
   it('renders nothing when amount is invalid', () => {
     const { container } = render(<FlowRatePreview amount="invalid" durationSeconds={3600} />);
     expect(container.firstChild).toBeNull();

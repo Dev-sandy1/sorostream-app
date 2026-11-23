@@ -24,6 +24,12 @@ describe("NetworkSelector", () => {
 
     fireEvent.click(button);
 
+    // Switching to mainnet requires typed confirmation (#894).
+    fireEvent.change(screen.getByLabelText(/type mainnet to confirm/i), {
+      target: { value: "mainnet" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Switch to Mainnet" }));
+
     expect(button).toHaveTextContent("Mainnet");
     expect(button).toHaveAttribute(
       "aria-label",
