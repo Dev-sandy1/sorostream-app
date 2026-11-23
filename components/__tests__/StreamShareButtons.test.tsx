@@ -14,6 +14,7 @@ import StreamShareButtons from "../StreamShareButtons";
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
 const addToast = vi.fn();
+const share = vi.fn();
 
 vi.mock("@/src/lib/toast", () => ({
   useToast: () => ({ addToast }),
@@ -39,10 +40,11 @@ function getShareButton() {
 describe("StreamShareButtons handleNativeShare (#888)", () => {
   beforeEach(() => {
     addToast.mockClear();
+    share.mockReset();
     // Ensure navigator.share is present so the native path is exercised.
     vi.stubGlobal("navigator", {
       ...navigator,
-      share: vi.fn(),
+      share,
     });
   });
 
@@ -52,8 +54,7 @@ describe("StreamShareButtons handleNativeShare (#888)", () => {
 
   it("shows no error toast when navigator.share rejects with AbortError (user dismissed)", async () => {
     const abortError = new DOMException("Share cancelled by user", "AbortError");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigator.share as any).mockRejectedValue(abortError);
+    share.mockRejectedValue(abortError);
 
     renderButtons();
 
@@ -69,8 +70,7 @@ describe("StreamShareButtons handleNativeShare (#888)", () => {
       "Permission denied",
       "NotAllowedError",
     );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigator.share as any).mockRejectedValue(permissionError);
+    share.mockRejectedValue(permissionError);
 
     renderButtons();
 
@@ -86,8 +86,7 @@ describe("StreamShareButtons handleNativeShare (#888)", () => {
   });
 
   it("shows no toast when navigator.share resolves (share completed successfully)", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigator.share as any).mockResolvedValue(undefined);
+    share.mockResolvedValue(undefined);
 
     renderButtons();
 
@@ -103,8 +102,7 @@ describe("StreamShareButtons handleNativeShare (#888)", () => {
     // some browsers — the guard only checks err.name, not the constructor.
     const plainAbort = new Error("Aborted");
     plainAbort.name = "AbortError";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigator.share as any).mockRejectedValue(plainAbort);
+    share.mockRejectedValue(plainAbort);
 
     renderButtons();
 
