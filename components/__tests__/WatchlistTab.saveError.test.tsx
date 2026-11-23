@@ -50,7 +50,7 @@ describe("WatchlistTab saveWatchlist error handling (#874)", () => {
     });
 
     // The UI should not crash; the Watch button is still present.
-    expect(screen.getByRole("button", { name: /watch/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Watch", exact: true })).toBeInTheDocument();
   });
 
   it("handleRemove does not throw when localStorage.setItem throws a quota error", async () => {

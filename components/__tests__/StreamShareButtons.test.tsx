@@ -32,7 +32,7 @@ function renderButtons(streamId = "stream-42") {
 
 /** Returns the "Share" button (native share or fallback). */
 function getShareButton() {
-  return screen.getByRole("button", { name: /share/i });
+  return screen.getByRole("button", { name: "Share using device share menu" });
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────

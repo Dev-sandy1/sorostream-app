@@ -9,6 +9,7 @@
  * The mount/fetch/cancelled-flag/cleanup boilerplate is shared with
  * useXlmPrice via usePriceFeed (issue #893).
  */
+import { useEffect, useState } from "react";
 import { getOraclePrice } from "./sorostream";
 import { usePriceFeed } from "./usePriceFeed";
 

@@ -204,7 +204,7 @@ describe("#784 — GlobalSearch dual stream-id / recipient-address match", () =>
 
   it("a query matching only one stream returns exactly 1 result", async () => {
     renderSearch();
-    await openAndType("GOTHER_RECIPIENT");
+    await openAndType("GBETA_SENDER_SHARED");
 
     const options = screen.getAllByRole("option");
     expect(options).toHaveLength(1);
