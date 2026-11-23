@@ -27,6 +27,7 @@
     "recipient_contacts_open": "Abrir agenda de endereços",
     "recipient_contacts_empty": "Nenhum contato salvo na agenda.",
     "recipient_contact_alias": "{alias} ({address})",
+    "address_verified": "Verificado",
     "address_active": "Ativo",
     "address_unverified": "Não Verificado",
     "address_verifying": "Verificando…",
