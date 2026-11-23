@@ -8,7 +8,7 @@ interface FlowRatePreviewProps {
 }
 
 export default function FlowRatePreview({ amount, durationSeconds }: FlowRatePreviewProps) {
-  if (!amount || !durationSeconds || durationSeconds === 0) return null;
+  if (!amount || !durationSeconds || durationSeconds <= 0) return null;
 
   const amountNum = parseFloat(amount);
   if (isNaN(amountNum) || amountNum <= 0) return null;

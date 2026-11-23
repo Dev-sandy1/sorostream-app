@@ -74,4 +74,18 @@ describe('SaveTemplateModal name collisions', () => {
     expect(addToast).toHaveBeenCalledWith('Template saved successfully!', 'success');
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('keeps Save disabled and ignores a whitespace-only name (#954)', () => {
+    const onClose = renderModal();
+    fireEvent.change(nameInput(), { target: { value: '  \t  ' } });
+
+    expect(saveButton()).toBeDisabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    fireEvent.submit(saveButton().closest('form')!);
+
+    expect(getSavedTemplates()).toHaveLength(0);
+    expect(addToast).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });

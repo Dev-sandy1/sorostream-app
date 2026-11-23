@@ -17,7 +17,7 @@ vi.mock('@/src/lib/sorostream', () => ({
 
 vi.mock('@/src/context/WalletContext', () => ({
   useWallet: () => ({
-    address: 'GBKLYONWFBQFBFZK6HMTXQZJNBKQEXZ3PJOVXNKZXVTV4FQXVMKLKHA',
+    address: 'GB7B2XS7YYUWVLXUYG6EWBEYHV4WTUY5VWFDOXWOITVNHAJBMMRV7ZGP',
   }),
 }));
 
@@ -31,6 +31,7 @@ import GiftStreamModal, {
 } from '../GiftStreamModal';
 
 const RECIPIENT = 'GB7B2XS7YYUWVLXUYG6EWBEYHV4WTUY5VWFDOXWOITVNHAJBMMRV7ZGO';
+const WALLET_ADDRESS = 'GB7B2XS7YYUWVLXUYG6EWBEYHV4WTUY5VWFDOXWOITVNHAJBMMRV7ZGP';
 const GIFT_MESSAGES_KEY = 'sorostream-gift-messages';
 
 function renderModal() {
@@ -147,5 +148,27 @@ describe('GiftStreamModal message length validation (#547)', () => {
       expect(createStream).toHaveBeenCalledTimes(1);
     });
     expect(screen.getByText(/gift stream created/i)).toBeInTheDocument();
+  });
+});
+
+describe('GiftStreamModal self-gifting (#949)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('rejects a gift to the connected wallet with the documented error', async () => {
+    createStream.mockResolvedValue({ streamId: '42' });
+    renderModal();
+    fillRequiredFields();
+    fireEvent.change(screen.getByLabelText(/recipient address/i), {
+      target: { value: WALLET_ADDRESS },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /send gift/i }));
+
+    expect(await screen.findByText('Recipient cannot be the same as the sender.')).toBeInTheDocument();
+    expect(createStream).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /send gift/i })).toBeInTheDocument();
   });
 });
